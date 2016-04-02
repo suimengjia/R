@@ -1,0 +1,520 @@
+\documentclass{article}
+\usepackage[francais]{babel}
+\RequirePackage[latin1,utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{graphicx}
+\usepackage{bbm}
+
+\usepackage[hmarginratio=1:1,top=32mm,columnsep=20pt]{geometry}
+\usepackage{multirow}
+\usepackage{multicol} % Style double colonne
+\usepackage{abstract} % Customization de l'abstract
+\usepackage{fancyhdr} % en-têtes et pieds de page
+\usepackage{float} % Nécessaire pour les tables et figures dans l'environnement double colonne
+
+\usepackage[small,hang]{caption2}
+
+\usepackage[colorlinks=true,linkcolor=red,urlcolor=blue,filecolor=green]{hyperref} % hyperliens
+
+\usepackage{dtklogos}
+
+
+	%\documentclass[a4paper,12pt]{report}
+	%\usepackage{natbib}
+	%\usepackage{rapportutc}
+	%\usepackage[nottoc, notlof, notlot]{tocbibind}
+	%\usepackage{sidecap}
+	%\usepackage{array}
+\usepackage[linewidth=1pt]{mdframed}
+\usepackage{Sweave} %package d'affichage des codes R
+	%\usepackage{amsmath, amsthm, amssymb, graphics, setspace} %packages de mathématiques
+\usepackage{calc,enumitem}  % Mise en forme l'environnement itemsize description etc.
+	%\usepackage{subfigure, wrapfig} % pour avoir plusieures figures alignées  
+\usepackage{color}
+	%\usepackage{ae,aecompl} 
+	%%\usepackage{fancyhdr}
+	
+	
+	%\title{TP01 :Statistique descriptive, Analyse en composantes principales}
+	%\author{Mengjia SUI - Wang GAO}
+	%\date{\today}
+	%
+	%\uv{SY09}
+	%\semestre{P16}
+	%\branche{Génie Informatique}
+	%\filiere{FDD}
+	%\specialite{Mengjia SUI - Wang GAO}
+	%
+	%\begin{document}
+	%\renewcommand{\labelitemi}{\large\textcolor{tatoebagreen}{\fg}}
+	%\newgeometry{top=2.5cm,bottom=2cm,left=2cm,right=2cm}
+	%\groovypdtitre
+	%\restoregeometry
+	%
+	%\addto\captionsfrench{\renewcommand{\sectionname}{Exercice}}
+	%\addto\captionsfrenchb{\renewcommand{\sectionname}{Exercice}}
+	%\addto\captionsenglish{\renewcommand{\sectionname}{Exercice}}
+	%\addto\captionsamerican{\renewcommand{\sectionname}{Exercice}}
+	
+	
+	
+	%\def\thesection{\alph{section}}
+	%\renewcommand\thesection{\Alph{section}}
+	
+	%\tableofcontents
+
+% En-têtes et pieds de page 
+\pagestyle{fancy}  
+\fancyhead{} % Blank out the default header
+\fancyfoot{} % Blank out the default footer
+\fancyhead[C]{Note sur la rédaction des compte-rendus} % Custom header text
+%\fancyfoot[RO,LE]{\thepage} % Custom footer text
+
+%\setlength{\parskip}{1ex} % espace entre paragraphes 
+
+\newcommand{\bsx}{\boldsymbol{x}}
+\newcommand{\transp}{^{\mathrm{t}}}
+
+
+%----------------------------------------------------------------------------------------
+
+\title{{\Large TP01 : Statistique descriptive, Analyse en composantes principales}}
+
+\author{Mengjia SUI - Wang GAO}
+\date{\today}
+
+%----------------------------------------------------------------------------------------
+
+\begin{document}
+
+	\renewcommand{\captionfont}{\small}
+	\maketitle % Insert title
+	
+	\thispagestyle{fancy} % All pages have headers and footers
+
+%----------------------------------------------------------------------------------------
+
+\begin{abstract}
+	
+	Le but de ce TP est dans la première partie d'utiliser les techniques de statistique descriptive pour faire un résumé et faire ressortir les informations importantes à partir d’un jeu de données de façons numériques et graphiques. Dans la deuxième partie, nous étudierons la technique de l’analyse en composantes principales. Nous réalisons dans un premier temps l'ACP étape par étape sur un petit jeu de données en utilisant R pour le calcul matriciel. Enfin nous utiliserons les fonctions de R pour réaliser une ACP.
+	
+\end{abstract}
+
+%----------------------------------------------------------------------------------------
+\begin{multicols}{2} % Style double colonne 
+
+
+\section{Statistique descriptive}
+	\subsection{ Le racket du tennis}
+	Dans cette première partie, nous nous intéressons à un jeu de données "anonymous-betting-data.csv" qui caractérise 129271 prises de position décrites chacune par 16 variables. Ces données brutes sont tout d'abord soumises à un prétraitement afin d'enlever les éléments et les attributs peu informatifs. On stocke ensuite les données ainsi nettoyées dans le tableau "books.sel" sur lequel se déroule notre recherche.
+	
+	\subsubsection{Analyse discriptive}
+
+	On commence par une analyse descriptive générale des données. 
+	%En exécutant des codes fournies dans l'annexe, 
+	On se donne une première vue sur les données :
+	
+\begin{footnotesize}
+	\begin{center}
+		\begin{tabular}[H]{|l|l|l|}
+			\hline
+			Statistique	& Valeur & Avant prétraitement\\ 
+			\hline
+			nb(joueur)	& 1523	 & 1527  \\ 
+			nb(matches)	& 25993  & 26532 \\ 
+			nb(paris)	& 126461 & 129271 \\
+			Période		& 7 ans	 & \\
+			\hline
+		\end{tabular} 
+	\end{center}	
+\end{footnotesize}
+	
+	À part cela, on a découvert le nombre de paris que participe chaque bookmaker :
+	\begin{mdframed}
+		\begin{footnotesize}
+			\begin{Verbatim}
+A     B     C     D     E     F     G 
+22681 22285 21482 16688 16685 14161 12479 
+			\end{Verbatim}
+		\end{footnotesize}
+	\end{mdframed}
+	
+	On a également tracé un graphique de nuage de points (Figure \ref{fig: Evolution de probabilite}) qui ont comme coordonné la probabilité de gain à l'ouverture et à la fermeture des paris afin d'avoir une idée sur l'évolution de probabilité. La droite neutre est en bleue et tous les points en dehors des droits rouges sont jugés associés aux matches suspects (nous faisons un lien avec la question 3).
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=\linewidth]{img/EvolutionProbaBooksSel.pdf}
+		\caption{Évolution de probabilité}
+		\label{fig: Evolution de probabilite}
+	\end{figure}
+	
+	\subsubsection{Tableau de joueurs}
+	Avant d'aborder les données de joueurs, on commence par créer un tableau dans lequel se stockent les informations concernant seulement les matches. Quatre colonnes y sont présentées : L'année, id de matche, gagnant et perdant. 
+	
+	À partir de ce tableau de matches, on calcule le nombre de matches gagnés, perdus, et donc joués par chaque joueur. 
+	
+	Quant au niveau de joueur, on aperçoit rapidement que le taux de gain n'est pas un indice fiable lors d'un nombre faible de matches participés par un joueur, puisque dans un cas extrême, celui qui ne joue qu'un seul match a un taux de gain de 100\%. 
+	La difficulté est donc de fournir une statistique qui relève le niveau du joueur d'une manière plus fidèle. En vue de la franchir, on introduit la moyenne bayésienne\cite{bib:Baysian Average}.
+	\[ Niveau(\text{player} A)=\frac { nb_{ gain }(A)+\overline { nb_{ gain } }  }{ nb_{ tot }(A)+\overline { nb_{ tot } }  } \]
+	
+	Le tableau de données \verb|players| est sous forme suivante :
+	\begin{table}[H]
+		\centering
+		\includegraphics[width=\linewidth]{img/tableauPlayers.png}
+		\label{tab: tableau de players}
+		\caption{Tableau de Players}
+	\end{table}
+	
+	\subsubsection{Recherche des joueurs suspects}
+	\paragraph{(a)}
+    ~\\
+    Il y a 2798 matches suspects. On peut pondérer chaque match par un indice \verb|Niv_sus| (pour niveau de suspect). Numériquement, elle égale au nombre de paris suspects associés au match sous-jacent. (Voir la Table \ref{tab: Tableau de matches suspects})
+    \paragraph{(b)}
+    ~\\
+    La fonction \verb|table()| nous permet de lister facilement les \verb|bookmakers| impliqués dans ces matches. Voici les 3 premières lignes du tableau \verb|matches.sus| :
+    \begin{table}[H]
+  		\centering
+  		\includegraphics[width=\linewidth]{img/tableauMatchesSuspects.png}
+  		\label{tab: Tableau de matches suspects}
+    	\caption{Tableau de matches suspects}
+    \end{table}
+
+    
+	\paragraph{(c)}
+	~\\
+	On suppose que les joueurs suspects sont ceux qui perdent les matches avec intention. Les joueurs gagnants des matches suspects ne sont donc pas mis en cause. Voyons d'abord le tableau \verb|player.table.sus| :
+	\begin{table}[H]
+		\centering
+		\includegraphics[width=\linewidth]{img/tableauPlayersSuspects.png}
+		\label{tab: Tableau de players suspects}
+		\caption{Tableau de players suspects}
+	\end{table}
+	Chaque ligne correspond à un joueur. Les premières 7 colonnes représentent le nombre de matches (niveau de suspect valant de 1 à 7) que le joueur perte. 
+	
+	Les joueurs suspectés d'être associés à des malversations sont : 
+\begin{mdframed}
+\begin{footnotesize}
+	\begin{Verbatim}
+> rownames(player.table.sus)[which(
++   player.table.sus$nb_mat_sus != 0)]
+  [1] "8d028ece8a" "dd83d74956" ...
+ [10] "7f4c89750c" "d5e122c7e9" ...
+	\end{Verbatim}
+\end{footnotesize}
+\end{mdframed}
+	Il y a 559 joueurs suspects dont 104 sont impliqués dans un grand nombre de défaites ($\,nb(matches suspects)\geqslant10$ ).
+	
+	
+	    
+   	\subsection{Données crabs}
+	\subsubsection{Analyse descriptive}
+	
+	Nous faisons d'abord quelques boîtes à moustaches
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=\linewidth]{img/1_2_1_Espece.pdf}
+		\caption{Monovariable en fonction d'espèce}
+		\label{fig:Monovariable en fonction d'espece}
+	\end{figure}
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=\linewidth]{img/1_2_1_Sexe.pdf}
+		\caption{Monovariable en fonction de sexe}
+		\label{fig:Monovariable en fonction de sexe}
+	\end{figure}
+	
+	Avec quelques essais d'histogramme, on peut en tirer plusieurs conclusions :
+	\begin{enumerate}
+		\item Les variables ont des distributions significativement différentes selon l'espèce des individus.
+		\item En terme de sexe, la différence des distributions n'est pas autant évidente.
+		\item Aucune variable toute seule ne nous permet par de distinguer ni l'espèce ni le sexe d'un crabe donné. 
+	\end{enumerate} 
+	
+	Dans ce cas-là, on se dirige ver une voie multivariable.
+	La fonction \verb|pairs()| du R nous permet d'avoir une première vue sur l'interaction entre les variables. Nous l'avons appliquée sur toutes les données quantitatives. Vu les formes typiquement linéaires deux à deux entre les variables, nous pouvons en déduire plusieurs conclusions :
+	\begin{enumerate}
+        \item Toutes les variables quantitatives sont corrélées plus ou moins linéairement.
+        \item Les distributions des points sous forme de monoligne suggèrent un sous-espace peu informatif lors d'une analyse en composantes principales. Ceci est le cas pour le couple (\verb|CL|, \verb|CW|) et le couple (\verb|FL|, \verb|BD|).
+        \item Les bifurcations des points mettent suggèrent des écarts brutaux (qualitatifs) entre les individus.
+    \end{enumerate}
+	
+	On utilise à nouveau la fonction \verb|pairs()| pour tracer deux figures en distinguant cette fois les individus selon leur genre ou leur espèce(voir Figures \ref{fig:pairs par sexe} et Figure \ref{fig:pairs par espece}
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.85\linewidth]{img/PairsParSexe.pdf}
+		\caption{Pairs par sexe, M: rouge, F: noir}
+		\label{fig:pairs par sexe}
+	\end{figure}
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.85\linewidth]{img/PairsParEspece.pdf}
+		\caption{Pairs par espèce, O: rouge, B: noir}
+		\label{fig:pairs par espece}
+	\end{figure}
+
+    À partir de la figure \ref{fig:pairs par sexe}, les individus de genre différent semblent être isolément distribués sur les plans de projection axés par \verb|RW| et une autre variable au choix. 
+    Étant donné que ces variables quantitatives sont des tailles mesurées sur des parties différentes du corps, nous en résume que pour des crabes de tailles globalement identiques, celles de genre féminin ont comme mesure de \verb|RW| plus grande. Supplémentairement, plus la taille globale est grande, plus la différence au niveau de \verb|RW| est signifiante. 
+    
+    En ce qui concerne l'espèce, on observe une translation des points issus de l'espèce O par rapport à ceux de B\@.    
+    
+    \subsubsection{Tableau de corrélation} 
+    \label{tab: tableau de correlation}
+    \begin{mdframed}
+\begin{footnotesize}
+\begin{Schunk}
+\begin{Soutput}
+     FL     RW     CL     CW     BD
+FL 1.0000 0.9070 0.9788 0.9650 0.9876
+RW 0.9070 1.0000 0.8927 0.9004 0.8892
+CL 0.9788 0.8927 1.0000 0.9950 0.9832
+CW 0.9650 0.9004 0.9950 1.0000 0.9678
+BD 0.9876 0.8892 0.9832 0.9678 1.0000
+\end{Soutput}
+\end{Schunk}
+\end{footnotesize}
+    \end{mdframed}
+    
+	Toutes les variables sont fortement corrélées puisqu'il s'agit des tailles des parties différentes du corps de crabes. Quel que soit le genre ou bien l'espèce d'un individu, ces parties du corps croissent d'une manière grosso modo proportionnelle.
+	Cela implique le fait qu’un grand jeu de donnée ne contient que très peu d'informations, d'où l'intérêt de réduire la dimension des données. Un outil performant pour s'affranchir de ce phénomène est l'analyse des composantes principales (ACP) que nous étudierons dans la section suivante.
+
+\section{ACP}
+	\subsection{Exercice théorique}
+	\begin{equation*}       %开始数学环境
+        X_{\text{Original}} =\left(                 %左括号
+            \begin{array}{ccc}   %该矩阵一共3列，每一列都居中放置
+            3 & 4 & 3\\  %第一行元素 
+            1 & 4 & 3\\  %第二行元素
+            2 & 3 & 6\\ 
+            4 & 1 & 2\\ 
+            \end{array}
+        \right)%右括号
+	\end{equation*}
+	\subsubsection{Inertie expliquée}
+	
+	Dans un premier temps, il faut centrer le tableau de données $ X_{\text{Original}}$. Pour cela nous utilisons la fonction \verb|scale()|, la matrice centrée notée $X$ obtenue est:
+	
+	\begin{equation*}       %开始数学环境
+        X =\left(  
+            \begin{array}{rrr} %该矩阵一共3列，每一列都居右放置
+            0.5 & 1 & -0.5\\  %第一行元素 
+            -1.5 & 1 & -0.5\\  %第二行元素
+            -0.5 & 0 & 2.5\\ 
+            1.5 & -2 & -1.5\\ 
+            \end{array}
+        \right)%右括号
+    \end{equation*}
+	
+	Et puis on calcul la matrice de variance :
+	
+	\begin{equation*}       %开始数学环境
+        Var(X) =\left(  
+            \begin{array}{rrr}   %该矩阵一共3列，每一列都居右放置
+            1.25 & -1.0 & -0.75\\ %第一行元素 
+            -1.00 & 1.5 & 0.50\\  %第二行元素
+            -0.75 & 0.5 & 2.25\\ 
+            \end{array}
+        \right)%右括号
+    \end{equation*}
+    
+    Apres la diagonaliastion de la matrice de variance nous obtenons les differentes valeurs propres:
+    $\lambda_1 = 3.20 \quad \lambda_2 = 1.47 \quad \lambda_3 = 0.33$
+
+    et les axes principaux d’inertie sont:
+        \begin{gather*}
+          u1 = \begin{pmatrix} \phantom{-}0.52  \\ -0.50 \\ -0.68 \end{pmatrix} \
+          u2=  \begin{pmatrix} \phantom{-}0.33  \\ -0.61 \\ \phantom{-}0.71 \end{pmatrix} \
+          u3=  \begin{pmatrix} 0.78  \\  0.60 \\0.15 \end{pmatrix} \
+        \end{gather*}
+    Alors les pourcentages d'inertie expliquée pour chaque axes sont:
+    
+    $I_{e_1^{\bot}} = 64.0\% \quad I_{e_2^{\bot}} = 29.4\% \quad I_{e_3^{\bot}} = 6.6\% $
+    \subsubsection{Représentation des individus}
+	
+	On trouve la matrice des composantes principales $ C=XMU =XU $ comme suivante :
+    \begin{mdframed}
+\begin{footnotesize}
+\begin{Schunk}
+\begin{Soutput}
+       [,1]       [,2]        [,3]
+[1,]  0.09396341 -0.7993436  0.92315798
+[2,] -0.95412132 -1.4765829 -0.63980885
+[3,] -1.96850984  1.6200297 -0.02174241
+[4,]  2.82866775  0.6558968 -0.26160672
+\end{Soutput}
+\end{Schunk}
+\end{footnotesize}
+    \end{mdframed}
+    
+    Voici la représentation des quatre individus dans le premier plan factoriel :
+    \begin{figure}[H]
+    	\centering
+    	\includegraphics[width = 0.8\linewidth]{img/ex_2_1_2.PNG}
+    	\caption{Individus dans le premier plan factoriel}
+    	\label{fig:4 individus dans le premier plan factoriel}		
+    \end{figure}
+    
+
+	\subsubsection{Représentation des variable}
+	
+	Ensuite, on figure les trois variables dans le premier plan factoriel comme suivante:
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width =0.8\linewidth]{img/2_1_3.png}
+		\caption{Variables dans le premier plan factoriel}
+		\label{fig:variables dans le premier plan factoriel}
+	\end{figure}
+
+	\subsubsection{Formule de reconstruction}
+	
+	On calcule maintenant l'expression de $\sum _{ \alpha =1 }^{ k }{C_{ \alpha }u_{\alpha}^{'} } $ pour les valeurs $k=1$,$2$ et $3$. Comme il s'agit de la formule de reconstitution, lorsque k=3, on obtient le résultat ci-dessous, qui correspond bien à la matrice centrée $X$:
+	
+	\begin{mdframed}	
+\begin{footnotesize}
+\begin{Schunk}
+\begin{Soutput}
+     [,1]          [,2] [,3]
+[1,]  0.5  1.000000e+00 -0.5
+[2,] -1.5  1.000000e+00 -0.5
+[3,] -0.5 -1.491862e-16  2.5
+[4,]  1.5 -2.000000e+00 -1.5
+\end{Soutput}
+\end{Schunk}
+\end{footnotesize}
+    \end{mdframed}
+
+	\subsection*{2.2 Utilisation des outils R}
+	L'objectif de cette partie est de se familiariser avec les fonctions du logiciel R permettant de réaliser facilement une ACP, notamment la fonction \verb|princomp()|. Pour cela, nous partirons du jeu de données "notes" étudié en cours et nous tenterons de retrouver toutes les informations que peut fournir une ACP facilement à l'aide de R. Nous tacherons également de représenter rapidement ces données à l'aide de la fonction \verb|biplot()|.
+	
+    On commence par appliquer la fonction \verb|princomp()| sur le jeu de données "notes", puis on peut retrouver tous les résultats de façon beaucoup plus rapide. Par exemple, pour les valeurs propres, nous utilisons la commande suivante:
+
+\begin{mdframed}	
+\begin{footnotesize}
+\begin{Schunk}
+\begin{Sinput}
+> notes.val.pro=notes.p$sdev^2
+> notes.val.pro
+\end{Sinput}
+\begin{Soutput}
+      Comp.1       Comp.2       Comp.3  
+28.253249801 12.074723274  8.615733579  
+      Comp.4       Comp.5 
+ 0.021732182  0.009869805 
+\end{Soutput}
+\end{Schunk}
+\end{footnotesize}
+\end{mdframed}
+
+    Il s'agit des mêmes commandes pour les autres résultats:
+	\begin{mdframed}	
+\begin{footnotesize}
+\begin{Schunk}
+\begin{Sinput}
+# Vecteurs propres (axes factoriels)
+> notes.vec.pro=notes.p$loadings
+# Pourcentages d'inertie expliquee
+> notes.s=summary(notes.p)
+# Composantes principales
+> notes.cp=notes.p$scores
+\end{Sinput}
+\end{Schunk}
+\end{footnotesize}
+    \end{mdframed}
+
+    Ensuite, nous intéressons aux fonctions \verb|plot()| et \verb|biplot()|.
+    
+    La fonction \verb|plot| ne fait que représenter un histogramme montrant les valeurs propres correspondant à chaque composante principale, ce qui donne un bon aperçu de l'importance des différentes composantes.
+    
+        \begin{figure}[H]
+			    \centering
+			    \includegraphics[width = 0.8\linewidth]{img/2_2_2_1.png}
+			    \caption{Résultat de la fonction plot}
+			    \label{fig:6}
+	    \end{figure}
+	    
+	    
+	La fonction \verb|biplot()| nous permet de représenter un nuage de points quelconque (individus ou variables) dans l'un de ses plans factoriels. On peut donc facilement obtenir les plans de représentation 1\&2 et 1\&3 suivants :
+	
+        \begin{figure}[H]
+			    \centering
+			    \includegraphics[width = \linewidth]{img/2_2_2.png}
+			    \caption{Résultat de la fonction biplot}
+			    \label{fig:7 }
+	    \end{figure}
+
+	\subsection*{2.3 Traitement des données Crabs}
+	Dans la dernière partie, nous reprendrons les données crabs traitées dans la première partie pour trouver une représentation qui permet de distinguer visuellement les groupes différents, liés à l'espèce et au sexe.
+	
+	Pour commencer, on réalise une ACP directement sur \verb|crabsquant| à l'aide des fonctions et .
+	
+	Sur la figure ci-dessous, nous voyons que les variables sont très corrélées. Les angles entre les différents vecteurs qui peuvent être interprétés comme des indicateurs de corrélation sont faibles. Sur la figure \ref{fig:9}, on constate que leurs variations sur la composante 2 et 3 sont limitées. Ces axes n’apportent donc pas beaucoup d’informations, alors que axe1 comporte à peu près 98\% de l’information totale.
+
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width = 0.8\linewidth]{img/EX2_3_1.png}
+		\caption{ACP du crabs sans traitements}
+		\label{fig:8 }
+	\end{figure}
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width = 0.8\linewidth]{img/EX2_3_1_1.png}
+		\caption{Variation sur les composantes}
+		\label{fig:9}
+	\end{figure}
+	
+	 Nous cherchons depuis le tableau de corrélation (Section \ref{tab: tableau de correlation}) que la variable la plus corrélée aux autres est \verb|CL|. Pour normaliser les variables, nous divisons toutes les autres variables par \verb|CL|. Il faut ensuite enlever l’ancienne variable \verb|CL|. Ensuite nous ferons une nouvelle ACP avec la nouvelle matrice. Sur les figures suivantes, on voit un résultat bien plus satisfaisant :
+
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width = 0.8 \linewidth]{img/EX2_3_1_4.png}
+		\caption{ACP du crabs après traitements}
+		\label{fig:10 }
+	\end{figure}
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width = 0.8\linewidth]{img/EX2_3_1_3.PNG}
+		\caption{Nouveau variation sur les composantes}
+		\label{fig:11}
+	\end{figure}
+
+
+
+%	\colorbox{yellow}{Not sure....i add a exemple of someone else but they doesn't have code...}
+%	
+%	\colorbox{yellow}{diviser chaque variable par la somme des variables associes au méme individu.}
+	
+	%%Finalement, a partir des donnees sur cinq variables, il semblerait que l'on puisse identier de facon quasi-certaine a quel groupe appartient un crabe quelconque gr^ace a l'analyse en composantes principales realisee apres traitement des donnees pour s'aranchir d'une trop importante correlation lineaire.
+%
+%        \begin{figure}[H]
+%			    \centering
+%			    \includegraphics[width = \linewidth]{img/exemple.PNG}
+%%			    \caption{Sooooooooooooooooooo cool but no code,,,,}
+%			    \label{fig:9999 }
+%	    \end{figure}
+
+	
+\end{multicols}
+\newpage
+\section*{Conclusion}
+
+    Pour conclure, nous avons découvert au cours de ce TP qu'une analyse descriptive des données est toujours essentielle. Cependant, il est souvent indispensable de se servir des outils mathématiques puissants tels que l'analyse en composantes principales afin de pouvoir visualiser certaines choses. Nous avons également constaté qu'il était important de toujours garder en tête la nature des données afin de bien comprendre le sujet et de faire subir à ces données les bons traitements si nécessaire. L'importance des graphiques pour observer des hypothèses d'un seul coup d'oeil a également été démontrée au cours de ce TP. %Très bien écrit.
+    %\colorbox{yellow}{Need you to add something}
+
+%---------------------------------------------------------------------------------------
+\begin{thebibliography}{99} % Bibliography - this is intentionally simple in this template
+
+\bibitem{bib:Baysian Average}
+Combining Prestige and Relevance Ranking for Personalized Recommendation.(2013)
+\newblock {\em Disponible en ligne avec
+\href{http://dl.acm.org/citation.cfm?doid=2505515.2507885}{ce lien}}.
+
+
+
+\end{thebibliography}
+
+\end{document}
